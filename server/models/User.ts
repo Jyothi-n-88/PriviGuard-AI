@@ -9,8 +9,9 @@ export interface IUser extends Document {
   role: 'admin' | 'dpo' | 'privacy_manager' | 'compliance_officer' | 'analyst' | 'viewer';
   status: 'active' | 'inactive';
   emailVerified: boolean;
-  emailVerificationTokenHash?: string;
-  emailVerificationExpiresAt?: Date;
+  emailVerificationOtpHash?: string;
+  emailVerificationOtpExpiresAt?: Date;
+  emailVerificationAttempts?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,11 +57,15 @@ const userSchema: Schema<IUser> = new Schema(
       required: true,
       default: false,
     },
-    emailVerificationTokenHash: {
+    emailVerificationOtpHash: {
       type: String,
     },
-    emailVerificationExpiresAt: {
+    emailVerificationOtpExpiresAt: {
       type: Date,
+    },
+    emailVerificationAttempts: {
+      type: Number,
+      default: 0,
     },
   },
   {

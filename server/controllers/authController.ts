@@ -74,10 +74,10 @@ export const register: RequestHandler = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(user.password, salt);
 
-    // 6. Create Verification Token
-    const rawVerificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenHash = crypto.createHash('sha256').update(rawVerificationToken).digest('hex');
-    const verificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    // 6. Create Verification OTP
+    const rawOtp = crypto.randomInt(0, 1000000).toString().padStart(6, '0');
+    const otpHash = crypto.createHash('sha256').update(rawOtp).digest('hex');
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // 7. Create User
     const newUser = new User({
@@ -88,14 +88,15 @@ export const register: RequestHandler = async (req, res, next) => {
       role: 'dpo',
       status: 'active',
       emailVerified: false,
-      emailVerificationTokenHash: verificationTokenHash,
-      emailVerificationExpiresAt: verificationExpiresAt
+      emailVerificationOtpHash: otpHash,
+      emailVerificationOtpExpiresAt: otpExpiresAt,
+      emailVerificationAttempts: 0
     });
     await newUser.save(session ? { session } : undefined);
 
     // 8. Send Email
     try {
-      await sendVerificationEmail(newUser.email, rawVerificationToken);
+      await sendVerificationEmail(newUser.email, rawOtp);
     } catch (emailError) {
       console.error('Failed to send verification email during registration:', emailError);
       // We do not abort the transaction here, so the user is created, but they will need to resend the email
@@ -110,19 +111,10 @@ export const register: RequestHandler = async (req, res, next) => {
     // 10. Return Safe Response
     res.status(201).json({
       success: true,
-      message: 'Registration successful. Please check your email to verify your account.',
+      message: 'Registration successful. Please check your email for the verification code.',
       data: {
-        organization: {
-          id: newOrganization._id,
-          name: newOrganization.name,
-          slug: newOrganization.slug
-        },
-        user: {
-          id: newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          role: newUser.role
-        }
+        requiresEmailVerification: true,
+        email: newUser.email
       }
     });
   } catch (error) {
@@ -233,24 +225,25 @@ export const adminTest: RequestHandler = async (req: AuthRequest, res, next) => 
   res.json({ success: true, message: 'You have accessed an admin-only endpoint.' });
 };
 
-export const verifyEmail: RequestHandler = async (req, res, next) => {
+export const verifyEmailOtp: RequestHandler = async (req, res, next) => {
   try {
-    const { token } = req.query;
+    const { email, otp } = req.body;
 
-    if (!token || typeof token !== 'string') {
-      res.status(400).json({ success: false, message: 'Invalid token.' });
+    if (!email || !otp || typeof email !== 'string' || typeof otp !== 'string') {
+      res.status(400).json({ success: false, message: 'Email and OTP are required.' });
       return;
     }
 
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    if (!/^\d{6}$/.test(otp)) {
+      res.status(400).json({ success: false, message: 'OTP must be exactly 6 digits.' });
+      return;
+    }
 
-    const user = await User.findOne({
-      emailVerificationTokenHash: tokenHash,
-      emailVerificationExpiresAt: { $gt: new Date() }
-    });
+    const normalizedEmail = email.toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      res.status(400).json({ success: false, message: 'Invalid or expired verification token.' });
+      res.status(400).json({ success: false, message: 'Invalid email or OTP.' });
       return;
     }
 
@@ -259,19 +252,47 @@ export const verifyEmail: RequestHandler = async (req, res, next) => {
       return;
     }
 
+    if (!user.emailVerificationOtpExpiresAt || user.emailVerificationOtpExpiresAt < new Date()) {
+      res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
+      return;
+    }
+
+    if ((user.emailVerificationAttempts || 0) >= 5) {
+      res.status(429).json({ success: false, message: 'Too many failed attempts. Please request a new OTP.' });
+      return;
+    }
+
+    const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+
+    if (user.emailVerificationOtpHash !== otpHash) {
+      user.emailVerificationAttempts = (user.emailVerificationAttempts || 0) + 1;
+      
+      // If they just hit the max, invalidate the OTP immediately
+      if (user.emailVerificationAttempts >= 5) {
+        user.emailVerificationOtpHash = undefined;
+        user.emailVerificationOtpExpiresAt = undefined;
+      }
+      
+      await user.save();
+      res.status(400).json({ success: false, message: 'Invalid OTP.' });
+      return;
+    }
+
+    // Success
     user.emailVerified = true;
-    user.emailVerificationTokenHash = undefined;
-    user.emailVerificationExpiresAt = undefined;
+    user.emailVerificationOtpHash = undefined;
+    user.emailVerificationOtpExpiresAt = undefined;
+    user.emailVerificationAttempts = 0;
     
     await user.save();
 
-    res.json({ success: true, message: 'Email successfully verified.' });
+    res.json({ success: true, message: 'Email verified successfully.' });
   } catch (error) {
     next(error);
   }
 };
 
-export const resendVerification: RequestHandler = async (req, res, next) => {
+export const resendEmailOtp: RequestHandler = async (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -283,34 +304,47 @@ export const resendVerification: RequestHandler = async (req, res, next) => {
     const normalizedEmail = email.toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
 
+    // Safety: don't reveal if user exists or is verified via success message
+    const safeResponse = { success: true, message: 'If an account requires verification, a new verification code has been sent.' };
+
     if (!user) {
-      // Safe response
-      res.json({ success: true, message: 'If the account requires verification, a verification email has been sent.' });
+      res.json(safeResponse);
       return;
     }
 
     if (user.emailVerified) {
-      // Safe response
-      res.json({ success: true, message: 'If the account requires verification, a verification email has been sent.' });
+      res.json(safeResponse);
       return;
     }
+    
+    // Cooldown check (e.g. 60 seconds)
+    // We could check if expiresAt is > 9 minutes in the future assuming 10 min expiry, 
+    // but the easiest is just generating. Let's do a strict 60s cooldown if we have an unexpired OTP.
+    if (user.emailVerificationOtpExpiresAt) {
+      const msSinceLastOtp = (10 * 60 * 1000) - (user.emailVerificationOtpExpiresAt.getTime() - Date.now());
+      if (msSinceLastOtp > 0 && msSinceLastOtp < 60 * 1000) {
+        res.status(429).json({ success: false, message: `Please wait before requesting a new code. Try again in ${Math.ceil((60000 - msSinceLastOtp)/1000)}s.` });
+        return;
+      }
+    }
 
-    const rawVerificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenHash = crypto.createHash('sha256').update(rawVerificationToken).digest('hex');
-    const verificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const rawOtp = crypto.randomInt(0, 1000000).toString().padStart(6, '0');
+    const otpHash = crypto.createHash('sha256').update(rawOtp).digest('hex');
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    user.emailVerificationTokenHash = verificationTokenHash;
-    user.emailVerificationExpiresAt = verificationExpiresAt;
+    user.emailVerificationOtpHash = otpHash;
+    user.emailVerificationOtpExpiresAt = otpExpiresAt;
+    user.emailVerificationAttempts = 0;
     
     await user.save();
 
     try {
-      await sendVerificationEmail(user.email, rawVerificationToken);
+      await sendVerificationEmail(user.email, rawOtp);
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
     }
 
-    res.json({ success: true, message: 'If the account requires verification, a verification email has been sent.' });
+    res.json(safeResponse);
   } catch (error) {
     next(error);
   }

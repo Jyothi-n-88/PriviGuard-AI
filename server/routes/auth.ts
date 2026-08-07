@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, getCurrentUser, adminTest, verifyEmail, resendVerification } from '../controllers/authController';
+import { register, login, getCurrentUser, adminTest, verifyEmailOtp, resendEmailOtp } from '../controllers/authController';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/authorize';
 
@@ -10,7 +10,7 @@ router.post('/login', login);
 router.get('/me', authenticate, getCurrentUser);
 router.get('/admin-test', authenticate, requireRole('admin'), adminTest);
 
-router.get('/verify-email', verifyEmail);
-router.post('/resend-verification', resendVerification);
+router.post('/verify-email-otp', verifyEmailOtp);
+router.post('/resend-email-otp', resendEmailOtp);
 
 export default router;

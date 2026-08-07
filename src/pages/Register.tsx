@@ -69,10 +69,8 @@ export const Register: React.FC = () => {
         },
       });
       
-      setSuccessMessage('Registration successful. Please check your email to verify your account before logging in.');
-      
-      // We will not navigate automatically to login since they need to verify email
-      // Let them read the message.
+      // We navigate automatically to OTP verification screen and pass the email
+      navigate('/verify-email', { state: { email: formData.userEmail } });
       
     } catch (err: any) {
       // Handled by AuthContext, authError will be populated

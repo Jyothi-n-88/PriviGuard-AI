@@ -1,5 +1,5 @@
 import api from './api';
-import { LoginRequest, RegisterRequest, AuthResponse, MeResponse } from '../types/auth';
+import { LoginRequest, RegisterRequest, AuthResponse, MeResponse, VerifyEmailOtpResponse } from '../types/auth';
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -17,13 +17,13 @@ export const authService = {
     return response.data;
   },
 
-  verifyEmail: async (token: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.get<{ success: boolean; message: string }>(`/auth/verify-email?token=${token}`);
+  verifyEmailOtp: async (email: string, otp: string): Promise<VerifyEmailOtpResponse> => {
+    const response = await api.post<VerifyEmailOtpResponse>('/auth/verify-email-otp', { email, otp });
     return response.data;
   },
 
-  resendVerification: async (email: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post<{ success: boolean; message: string }>('/auth/resend-verification', { email });
+  resendEmailOtp: async (email: string): Promise<VerifyEmailOtpResponse> => {
+    const response = await api.post<VerifyEmailOtpResponse>('/auth/resend-email-otp', { email });
     return response.data;
   },
 };

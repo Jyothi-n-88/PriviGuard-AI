@@ -45,18 +45,8 @@ export const Login: React.FC = () => {
     }
   };
 
-  const handleResend = async () => {
-    if (!email) return;
-    try {
-      setResendStatus('loading');
-      const { authService } = await import('../services/authService');
-      const response = await authService.resendVerification(email);
-      setResendStatus('success');
-      setResendMessage(response.message);
-    } catch (err: any) {
-      setResendStatus('error');
-      setResendMessage(err.response?.data?.message || err.message || 'Failed to resend verification email.');
-    }
+  const handleVerifyNavigate = () => {
+    navigate('/verify-email', { state: { email } });
   };
 
   const displayError = formError || authError;
@@ -88,11 +78,10 @@ export const Login: React.FC = () => {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={handleResend}
-                          disabled={resendStatus === 'loading'}
+                          onClick={handleVerifyNavigate}
                           className="bg-white"
                         >
-                          {resendStatus === 'loading' ? 'Sending...' : 'Resend Verification Email'}
+                          Verify Email
                         </Button>
                       </div>
                     )}

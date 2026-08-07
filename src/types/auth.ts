@@ -50,3 +50,17 @@ export interface MeResponse {
     user: User;
   };
 }
+
+export interface VerifyEmailOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface ResendEmailOtpRequest {
+  email: string;
+}
+
+export interface VerifyEmailOtpResponse {
+  success: boolean;
+  message: string;
+}
