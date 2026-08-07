@@ -4,7 +4,10 @@ import helmet from 'helmet';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { connectDB } from './server/config/db';
+import './server/models/Organization';
+import './server/models/User';
 import healthRoutes from './server/routes/health';
+import authRoutes from './server/routes/auth';
 import { errorHandler } from './server/middleware/error';
 
 async function startServer() {
@@ -30,6 +33,7 @@ async function startServer() {
 
   // API Routes
   app.use('/api', healthRoutes);
+  app.use('/api/auth', authRoutes);
 
   // Error Handling Middleware
   app.use(errorHandler);

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken } from '../utils/authStorage';
 
 // Create an Axios instance
 // In local dev and production, the API is served from the same origin on `/api`
@@ -13,11 +14,10 @@ const api = axios.create({
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
-    // We will add JWT token here in Phase 3 or 4
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
