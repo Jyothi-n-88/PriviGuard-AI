@@ -18,6 +18,45 @@ export interface RiskResult {
   calculatedAt: Date;
 }
 
+export const deriveBaseRiskIndicators = (assessment: Partial<IAssessment>) => {
+  const textIncludes = (text: string | string[] | undefined, keywords: string[]): boolean => {
+    if (!text) return false;
+    const lowerText = Array.isArray(text) ? text.join(' ').toLowerCase() : text.toLowerCase();
+    return keywords.some(kw => lowerText.includes(kw));
+  };
+
+  const sensitiveKeywords = ['health', 'medical', 'financial', 'credit card', 'ssn', 'biometric', 'children', 'minors', 'password', 'criminal', 'genetic'];
+  const sharingKeywords = ['external', 'third party', 'vendor', 'public', 'cross-border', 'international'];
+  const weakSecurityKeywords = ['none', 'n/a', 'missing', 'weak', 'no security', 'plain text'];
+
+  const sensitivityText = [
+    assessment.processingActivity,
+    assessment.purpose,
+    assessment.description,
+    ...(assessment.personalDataCategories || []),
+    ...(assessment.dataSubjects || [])
+  ].join(' ');
+
+  const sharingText = [
+    assessment.dataSharing,
+    ...(assessment.thirdPartyProcessors || [])
+  ].join(' ');
+
+  const hasSensitive = textIncludes(sensitivityText, sensitiveKeywords);
+  const hasExternalSharing = textIncludes(sharingText, sharingKeywords);
+  const hasWeakSecurity = textIncludes(assessment.securityMeasures, weakSecurityKeywords) || !assessment.securityMeasures || assessment.securityMeasures.trim() === '';
+
+  let impact: 'low' | 'medium' | 'high' = 'low';
+  if (hasSensitive) impact = 'high';
+  else if (hasExternalSharing) impact = 'medium';
+
+  let likelihood: 'low' | 'medium' | 'high' = 'low';
+  if (hasWeakSecurity && hasExternalSharing) likelihood = 'high';
+  else if (hasWeakSecurity || hasExternalSharing) likelihood = 'medium';
+
+  return { likelihood, impact };
+};
+
 export const calculatePrivacyRisk = (assessment: Partial<IAssessment>): RiskResult => {
   let score = 0;
   const factors: string[] = [];

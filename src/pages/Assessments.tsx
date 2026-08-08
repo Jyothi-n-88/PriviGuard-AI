@@ -108,6 +108,7 @@ export function Assessments() {
                     <th className="px-6 py-3">Title / Activity</th>
                     <th className="px-6 py-3">Status</th>
                     <th className="px-6 py-3">Risk Level</th>
+                    <th className="px-6 py-3">Review</th>
                     <th className="px-6 py-3">Updated</th>
                     <th className="px-6 py-3 text-right">Actions</th>
                   </tr>
@@ -123,7 +124,12 @@ export function Assessments() {
                         {getStatusBadge(assessment.status)}
                       </td>
                       <td className="px-6 py-4">
-                        {getRiskBadge(assessment.calculatedRiskLevel)}
+                        {assessment.calculatedRiskLevel ? getRiskBadge(assessment.calculatedRiskLevel) : <span className="text-slate-400">--</span>}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`capitalize text-xs font-medium px-2 py-1 rounded-full ${assessment.dpoReviewStatus === 'approved' ? 'bg-green-50 text-green-700' : assessment.dpoReviewStatus === 'rejected' ? 'bg-red-50 text-red-700' : assessment.dpoReviewStatus === 'reassessed' ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-600'}`}>
+                          {assessment.dpoReviewStatus || 'pending'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-slate-500">
                         {new Date(assessment.updatedAt).toLocaleDateString()}
@@ -140,7 +146,7 @@ export function Assessments() {
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                         No assessments match your search.
                       </td>
                     </tr>

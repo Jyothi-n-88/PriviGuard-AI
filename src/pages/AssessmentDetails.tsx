@@ -54,6 +54,18 @@ export function AssessmentDetails() {
     }
   };
 
+  const handleReviewSubmit = async (status: string, comment?: string) => {
+    try {
+      setLoading(true);
+      const res = await assessmentService.submitDpoReview(id!, status, comment);
+      setAssessment(res.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update review status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-slate-500">Loading assessment...</div>;
   if (error && !assessment) return <div className="p-8"><Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert></div>;
   if (!assessment) return <div className="p-8">Assessment not found.</div>;
@@ -143,15 +155,11 @@ export function AssessmentDetails() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Security & Risk Mitigation</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Security</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <h4 className="text-sm font-medium text-slate-500 mb-1">Security Measures</h4>
                 <p className="text-slate-900 whitespace-pre-wrap">{assessment.securityMeasures || 'None specified'}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-slate-500 mb-1">Mitigation Measures</h4>
-                <p className="text-slate-900 whitespace-pre-wrap">{assessment.mitigationMeasures || 'None specified'}</p>
               </div>
             </CardContent>
           </Card>
@@ -205,6 +213,129 @@ export function AssessmentDetails() {
                   </ul>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>AI Insights</CardTitle></CardHeader>
+            <CardContent>
+              {assessment.isAiGenerated ? (
+                <div className="space-y-4">
+                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded inline-block font-medium mb-2">Gemini Analysis Available</div>
+                  {assessment.aiInsights && assessment.aiInsights.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900 mb-2">Key Insights</h4>
+                      <ul className="space-y-2">
+                        {assessment.aiInsights.map((insight, idx) => (
+                          <li key={idx} className="flex items-start text-sm">
+                            <span className="mr-2 text-blue-500">•</span>
+                            <span className="text-slate-700">{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {assessment.aiRecommendations && assessment.aiRecommendations.length > 0 && (
+                    <div className="pt-2">
+                      <h4 className="text-sm font-semibold text-slate-900 mb-2">AI Recommendations</h4>
+                      <ul className="space-y-2">
+                        {assessment.aiRecommendations.map((rec, idx) => (
+                          <li key={idx} className="flex items-start text-sm">
+                            <span className="mr-2 text-green-500">→</span>
+                            <span className="text-slate-700">{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-slate-500 italic">
+                  AI analysis unavailable — showing deterministic rule-based analysis.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>DPO Review</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 text-sm">Review Status:</span>
+                <span className={`font-medium capitalize px-2 py-0.5 rounded text-sm ${assessment.dpoReviewStatus === 'approved' ? 'bg-green-100 text-green-800' : assessment.dpoReviewStatus === 'rejected' ? 'bg-red-100 text-red-800' : assessment.dpoReviewStatus === 'reassessed' ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  {assessment.dpoReviewStatus || 'pending'}
+                </span>
+              </div>
+              
+              {assessment.dpoReviewComment && (
+                <div className="pt-2">
+                  <h4 className="text-sm font-medium text-slate-500 mb-1">DPO Comment</h4>
+                  <p className="text-slate-900 text-sm whitespace-pre-wrap">{assessment.dpoReviewComment}</p>
+                </div>
+              )}
+              
+              <RoleGuard allowedRoles={['admin', 'dpo']}>
+                <div className="pt-2 border-t border-slate-100 space-y-3">
+                  <textarea
+                    placeholder="Add a comment (required for Reject / Request Reassessment)..."
+                    className="w-full text-sm rounded-md border border-slate-300 p-2 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    rows={2}
+                    id="dpo-comment"
+                  ></textarea>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full text-green-700 hover:text-green-800 hover:bg-green-50 border-green-200"
+                      onClick={() => {
+                        const comment = (document.getElementById('dpo-comment') as HTMLTextAreaElement)?.value;
+                        handleReviewSubmit('approved', comment);
+                        if (document.getElementById('dpo-comment')) {
+                          (document.getElementById('dpo-comment') as HTMLTextAreaElement).value = '';
+                        }
+                      }}
+                    >
+                      Approve
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full text-orange-700 hover:text-orange-800 hover:bg-orange-50 border-orange-200 whitespace-nowrap"
+                      onClick={() => {
+                        const comment = (document.getElementById('dpo-comment') as HTMLTextAreaElement)?.value;
+                        if (!comment || comment.trim() === '') {
+                           setError('A comment is required to request reassessment');
+                           return;
+                        }
+                        handleReviewSubmit('reassessed', comment);
+                        if (document.getElementById('dpo-comment')) {
+                          (document.getElementById('dpo-comment') as HTMLTextAreaElement).value = '';
+                        }
+                      }}
+                    >
+                      Request Reassessment
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full text-red-700 hover:text-red-800 hover:bg-red-50 border-red-200"
+                      onClick={() => {
+                        const comment = (document.getElementById('dpo-comment') as HTMLTextAreaElement)?.value;
+                        if (!comment || comment.trim() === '') {
+                           setError('A comment is required to reject');
+                           return;
+                        }
+                        handleReviewSubmit('rejected', comment);
+                        if (document.getElementById('dpo-comment')) {
+                          (document.getElementById('dpo-comment') as HTMLTextAreaElement).value = '';
+                        }
+                      }}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              </RoleGuard>
             </CardContent>
           </Card>
 

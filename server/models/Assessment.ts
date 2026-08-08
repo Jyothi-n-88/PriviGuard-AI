@@ -30,6 +30,11 @@ export interface IAssessment extends Document {
   }[];
   riskEngineVersion?: string;
   riskCalculatedAt?: Date;
+  aiInsights?: string[];
+  aiRecommendations?: string[];
+  dpoReviewStatus?: 'pending' | 'approved' | 'rejected' | 'reassessed';
+  dpoReviewComment?: string;
+  isAiGenerated?: boolean;
   identifiedRisks?: string[];
   mitigationMeasures?: string;
   createdAt: Date;
@@ -87,6 +92,15 @@ const assessmentSchema: Schema<IAssessment> = new Schema(
     ],
     riskEngineVersion: { type: String, default: 'rule-v1' },
     riskCalculatedAt: { type: Date },
+    aiInsights: [{ type: String }],
+    aiRecommendations: [{ type: String }],
+    dpoReviewStatus: { 
+      type: String, 
+      enum: ['pending', 'approved', 'rejected', 'reassessed'], 
+      default: 'pending' 
+    },
+    dpoReviewComment: { type: String },
+    isAiGenerated: { type: Boolean, default: false },
     identifiedRisks: [{ type: String, trim: true }],
     mitigationMeasures: { type: String, trim: true },
   },

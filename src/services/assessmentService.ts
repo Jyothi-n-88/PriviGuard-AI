@@ -36,4 +36,9 @@ export const assessmentService = {
     const response = await api.post<AssessmentResponse>(`/assessments/${id}/recalculate-risk`);
     return response.data;
   },
+
+  submitDpoReview: async (id: string, status: string, comment?: string): Promise<AssessmentResponse> => {
+    const response = await api.put<AssessmentResponse>(`/assessments/${id}/review`, { status, comment });
+    return response.data;
+  },
 };

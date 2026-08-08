@@ -28,10 +28,7 @@ export function AssessmentForm() {
     storageLocation: '',
     retentionPeriod: '',
     dataSharing: '',
-    securityMeasures: '',
-    riskLikelihood: '',
-    riskImpact: '',
-    mitigationMeasures: ''
+    securityMeasures: ''
   });
 
   useEffect(() => {
@@ -54,10 +51,7 @@ export function AssessmentForm() {
         storageLocation: data.storageLocation || '',
         retentionPeriod: data.retentionPeriod || '',
         dataSharing: data.dataSharing || '',
-        securityMeasures: data.securityMeasures || '',
-        riskLikelihood: data.riskLikelihood || '',
-        riskImpact: data.riskImpact || '',
-        mitigationMeasures: data.mitigationMeasures || ''
+        securityMeasures: data.securityMeasures || ''
       });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load assessment');
@@ -173,46 +167,14 @@ export function AssessmentForm() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Security & Risk Assessment</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Security Assessment</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="securityMeasures">Security Measures</Label>
               <textarea 
                 id="securityMeasures" name="securityMeasures" value={formData.securityMeasures} onChange={handleChange}
                 className="flex w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 min-h-[80px]"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="riskLikelihood">Risk Likelihood</Label>
-                <select 
-                  id="riskLikelihood" name="riskLikelihood" value={formData.riskLikelihood} onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-                >
-                  <option value="">Select...</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="riskImpact">Risk Impact</Label>
-                <select 
-                  id="riskImpact" name="riskImpact" value={formData.riskImpact} onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-                >
-                  <option value="">Select...</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="mitigationMeasures">Mitigation Measures</Label>
-              <textarea 
-                id="mitigationMeasures" name="mitigationMeasures" value={formData.mitigationMeasures} onChange={handleChange}
-                className="flex w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 min-h-[80px]"
+                placeholder="Describe existing security controls (e.g. encryption, access control, MFA)"
               />
             </div>
           </CardContent>

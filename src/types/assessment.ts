@@ -31,6 +31,11 @@ export interface Assessment {
   riskFindings?: RiskFinding[];
   riskEngineVersion?: string;
   riskCalculatedAt?: string;
+  aiInsights?: string[];
+  aiRecommendations?: string[];
+  dpoReviewStatus?: 'pending' | 'approved' | 'rejected' | 'reassessed';
+  dpoReviewComment?: string;
+  isAiGenerated?: boolean;
   identifiedRisks?: string[];
   mitigationMeasures?: string;
   createdAt: string;
