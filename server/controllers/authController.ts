@@ -94,6 +94,10 @@ export const register: RequestHandler = async (req, res, next) => {
     });
     await newUser.save(session ? { session } : undefined);
 
+    // 7b. Assign owner to Organization
+    newOrganization.ownerId = newUser._id;
+    await newOrganization.save(session ? { session } : undefined);
+
     // 8. Send Email
     try {
       await sendVerificationEmail(newUser.email, rawOtp);

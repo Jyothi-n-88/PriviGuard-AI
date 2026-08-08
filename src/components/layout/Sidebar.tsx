@@ -10,8 +10,10 @@ import {
   ActivitySquare, 
   Settings,
   X,
-  Shield
+  Shield,
+  Users
 } from 'lucide-react';
+
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/auth';
@@ -38,8 +40,9 @@ const mainNavItems: NavItem[] = [
 ];
 
 const managementNavItems: NavItem[] = [
-  { name: 'Organizations', href: '/organizations', icon: Building2, allowedRoles: ['admin'] },
   { name: 'Processing Activities', href: '/processing-activities', icon: ActivitySquare, allowedRoles: ['admin', 'dpo', 'privacy_manager', 'compliance_officer', 'analyst'] },
+  { name: 'Org Settings', href: '/organization/settings', icon: Building2, allowedRoles: ['admin', 'dpo', 'privacy_manager'] },
+  { name: 'Org Members', href: '/organization/members', icon: Users, allowedRoles: ['admin', 'dpo', 'privacy_manager', 'compliance_officer', 'analyst'] },
 ];
 
 const systemNavItems: NavItem[] = [

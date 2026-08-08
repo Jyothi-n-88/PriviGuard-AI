@@ -11,11 +11,14 @@ import { Register } from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import { Dashboard } from './pages/Dashboard';
 import { Assessments } from './pages/Assessments';
+import { AssessmentForm } from './pages/AssessmentForm';
+import { AssessmentDetails } from './pages/AssessmentDetails';
 import { RiskCenter } from './pages/RiskCenter';
 import { DataFlows } from './pages/DataFlows';
 import { Remediation } from './pages/Remediation';
 import { Reports } from './pages/Reports';
-import { Organizations } from './pages/Organizations';
+import { OrganizationSettings } from './pages/OrganizationSettings';
+import { OrganizationMembers } from './pages/OrganizationMembers';
 import { ProcessingActivities } from './pages/ProcessingActivities';
 import { Settings } from './pages/Settings';
 import { DesignShowcase } from './pages/DesignShowcase';
@@ -38,6 +41,7 @@ export default function App() {
             {/* Accessible by all authenticated users */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/assessments" element={<Assessments />} />
+            <Route path="/assessments/:id" element={<AssessmentDetails />} />
             <Route path="/risk-center" element={<RiskCenter />} />
             <Route path="/reports" element={<Reports />} />
             
@@ -46,11 +50,17 @@ export default function App() {
               <Route path="/data-flows" element={<DataFlows />} />
               <Route path="/remediation" element={<Remediation />} />
               <Route path="/processing-activities" element={<ProcessingActivities />} />
+              <Route path="/organization/members" element={<OrganizationMembers />} />
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'dpo', 'privacy_manager']} />}>
+              <Route path="/assessments/new" element={<AssessmentForm />} />
+              <Route path="/assessments/:id/edit" element={<AssessmentForm />} />
+              <Route path="/organization/settings" element={<OrganizationSettings />} />
             </Route>
 
             {/* Admin only */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-              <Route path="/organizations" element={<Organizations />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

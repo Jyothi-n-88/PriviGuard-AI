@@ -3,6 +3,8 @@ import mongoose, { Document, Schema, Model } from 'mongoose';
 export interface IOrganization extends Document {
   name: string;
   slug: string;
+  description?: string;
+  ownerId?: mongoose.Types.ObjectId;
   industry?: string;
   size?: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
   country?: string;
@@ -25,6 +27,15 @@ const organizationSchema: Schema<IOrganization> = new Schema(
       unique: true,
       trim: true,
       lowercase: true,
+      index: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
       index: true,
     },
     industry: {

@@ -8,6 +8,9 @@ import './server/models/Organization';
 import './server/models/User';
 import healthRoutes from './server/routes/health';
 import authRoutes from './server/routes/auth';
+import organizationRoutes from './server/routes/organization';
+import assessmentRoutes from './server/routes/assessment';
+import dashboardRoutes from './server/routes/dashboard';
 import { errorHandler } from './server/middleware/error';
 
 async function startServer() {
@@ -34,6 +37,9 @@ async function startServer() {
   // API Routes
   app.use('/api', healthRoutes);
   app.use('/api/auth', authRoutes);
+  app.use('/api/organizations', organizationRoutes);
+  app.use('/api/assessments', assessmentRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
 
   // Error Handling Middleware
   app.use(errorHandler);
