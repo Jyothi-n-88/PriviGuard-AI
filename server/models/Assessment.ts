@@ -2,6 +2,7 @@ import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface IAssessment extends Document {
   organizationId: mongoose.Types.ObjectId;
+  version: number;
   title: string;
   processingActivity: string;
   purpose: string;
@@ -34,9 +35,17 @@ export interface IAssessment extends Document {
   aiRecommendations?: string[];
   dpoReviewStatus?: 'pending' | 'approved' | 'rejected' | 'reassessed';
   dpoReviewComment?: string;
+  dpoReviewedBy?: mongoose.Types.ObjectId;
+  dpoReviewedAt?: Date;
   isAiGenerated?: boolean;
   identifiedRisks?: string[];
   mitigationMeasures?: string;
+  executiveSummary?: string;
+  complianceGaps?: any[];
+  riskExplanation?: string;
+  aiReportRecommendations?: string[];
+  aiReportGeneratedAt?: Date;
+  aiReportAssessmentUpdatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,6 +58,7 @@ const assessmentSchema: Schema<IAssessment> = new Schema(
       required: [true, 'Organization ID is required'],
       index: true,
     },
+    version: { type: Number, default: 1 },
     title: { type: String, required: [true, 'Title is required'], trim: true },
     processingActivity: { type: String, required: [true, 'Processing activity is required'], trim: true },
     purpose: { type: String, required: [true, 'Purpose is required'], trim: true },
@@ -100,9 +110,20 @@ const assessmentSchema: Schema<IAssessment> = new Schema(
       default: 'pending' 
     },
     dpoReviewComment: { type: String },
+    dpoReviewedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    dpoReviewedAt: { type: Date },
     isAiGenerated: { type: Boolean, default: false },
     identifiedRisks: [{ type: String, trim: true }],
     mitigationMeasures: { type: String, trim: true },
+    executiveSummary: { type: String },
+    complianceGaps: [{ type: Schema.Types.Mixed }],
+    riskExplanation: { type: String },
+    aiReportRecommendations: [{ type: String }],
+    aiReportGeneratedAt: { type: Date },
+    aiReportAssessmentUpdatedAt: { type: Date },
   },
   { timestamps: true }
 );

@@ -11,6 +11,7 @@ import authRoutes from './server/routes/auth';
 import organizationRoutes from './server/routes/organization';
 import assessmentRoutes from './server/routes/assessment';
 import dashboardRoutes from './server/routes/dashboard';
+import remediationRoutes from './server/routes/remediation';
 import { errorHandler } from './server/middleware/error';
 
 async function startServer() {
@@ -40,6 +41,7 @@ async function startServer() {
   app.use('/api/organizations', organizationRoutes);
   app.use('/api/assessments', assessmentRoutes);
   app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/remediations', remediationRoutes);
 
   // Error Handling Middleware
   app.use(errorHandler);

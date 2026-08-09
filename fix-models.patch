@@ -1,0 +1,22 @@
+--- server/services/geminiService.ts
++++ server/services/geminiService.ts
+@@ -67,7 +67,7 @@
+   "recommendations": ["recommendation 1", "recommendation 2"]
+ }`;
+ 
+-    const response = await withRetry(() => ai.models.generateContent({
+-      model: 'gemini-3.5-flash',
++    const response = await withRetry(() => ai.models.generateContent({
++      model: 'gemini-3.5-flash-lite',
+       contents: prompt,
+       config: {
+@@ -171,7 +171,7 @@
+   "recommendations": ["Recommendation 1", "Recommendation 2"]
+ }`;
+ 
+-    const response = await withRetry(() => ai.models.generateContent({
+-      model: 'gemini-3.5-flash',
++    const response = await withRetry(() => ai.models.generateContent({
++      model: 'gemini-3.5-flash-lite',
+       contents: prompt,
+       config: {

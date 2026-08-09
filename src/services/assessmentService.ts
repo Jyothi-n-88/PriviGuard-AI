@@ -41,4 +41,17 @@ export const assessmentService = {
     const response = await api.put<AssessmentResponse>(`/assessments/${id}/review`, { status, comment });
     return response.data;
   },
+
+  generatePrivacyReport: async (id: string): Promise<AssessmentResponse> => {
+    const response = await api.post<AssessmentResponse>(`/assessments/${id}/generate-report`);
+    return response.data;
+  },
+  getAuditLogs: async (id: string): Promise<import('../types/audit').AuditLogsResponse> => {
+    const response = await api.get<import('../types/audit').AuditLogsResponse>(`/assessments/${id}/audit`);
+    return response.data;
+  },
+  getAssessmentVersions: async (id: string): Promise<import('../types/audit').AssessmentVersionsResponse> => {
+    const response = await api.get<import('../types/audit').AssessmentVersionsResponse>(`/assessments/${id}/versions`);
+    return response.data;
+  },
 };

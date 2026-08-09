@@ -1,0 +1,30 @@
+--- server/controllers/assessmentController.ts
++++ server/controllers/assessmentController.ts
+@@ -140,7 +140,11 @@
+     Object.assign(assessment, data);
+ 
+     const analyzedData = await applyRiskAnalysis(assessment.toObject());
+-    Object.assign(assessment, analyzedData);
++    delete analyzedData._id;
++    delete analyzedData.organizationId;
++    delete analyzedData.createdAt;
++    delete analyzedData.updatedAt;
++    delete analyzedData.__v;
++    Object.assign(assessment, analyzedData);
+ 
+     await assessment.save();
+ 
+@@ -185,7 +189,11 @@
+     }
+ 
+     const analyzedData = await applyRiskAnalysis(assessment.toObject());
+-    Object.assign(assessment, analyzedData);
++    delete analyzedData._id;
++    delete analyzedData.organizationId;
++    delete analyzedData.createdAt;
++    delete analyzedData.updatedAt;
++    delete analyzedData.__v;
++    Object.assign(assessment, analyzedData);
+ 
+     await assessment.save();
+ 

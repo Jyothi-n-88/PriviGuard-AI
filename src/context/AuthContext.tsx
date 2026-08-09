@@ -22,6 +22,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'priviguard_auth_token') {
+        // If the token changes in another tab (logout or different user login),
+        // we must invalidate the current tab's frontend auth state to prevent 
+        // stale data execution and force re-authentication.
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  useEffect(() => {
     const initAuth = async () => {
       const token = getToken();
       if (!token) {

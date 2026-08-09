@@ -1,0 +1,35 @@
+--- server/services/geminiService.ts
++++ server/services/geminiService.ts
+@@ -14,10 +14,6 @@
+         if (retryMatch) {
+           delay = Math.ceil(parseFloat(retryMatch[1]) * 1000) + 1000;
+         }
+-        if (delay > 10000) {
+-          console.warn(`Gemini API Rate Limit hit. Delay ${delay}ms is too long, aborting retry.`);
+-          throw error;
+-        }
+         console.warn(`Gemini API Rate Limit hit. Retrying in ${delay}ms... (Attempt ${attempt}/${retries})`);
+         await new Promise(resolve => setTimeout(resolve, delay));
+       } else {
+@@ -95,8 +91,8 @@
+       }
+     }
+     return null;
+-  } catch (error: any) {
+-    console.error('Gemini Analysis Failed:', error.message || error);
++  } catch (error) {
++    console.error('Gemini Analysis Failed:', error);
+     return null;
+   }
+ };
+@@ -188,8 +184,8 @@
+       }
+     }
+     return null;
+-  } catch (error: any) {
+-    console.error('Gemini Report Generation Failed:', error.message || error);
++  } catch (error) {
++    console.error('Gemini Report Generation Failed:', error);
+     return null;
+   }
+ };

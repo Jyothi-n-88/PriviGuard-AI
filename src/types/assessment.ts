@@ -7,6 +7,15 @@ export interface RiskFinding {
   points?: number;
 }
 
+export interface ComplianceGap {
+  title: string;
+  status: 'confirmed' | 'potential' | 'not_provided';
+  reason: string;
+  recommendation: string;
+  evidence?: string;
+  confidence?: 'high' | 'medium' | 'low';
+}
+
 export interface Assessment {
   _id: string;
   organizationId: string;
@@ -35,9 +44,18 @@ export interface Assessment {
   aiRecommendations?: string[];
   dpoReviewStatus?: 'pending' | 'approved' | 'rejected' | 'reassessed';
   dpoReviewComment?: string;
+  dpoReviewedBy?: string;
+  dpoReviewedAt?: string;
+  version?: number;
   isAiGenerated?: boolean;
   identifiedRisks?: string[];
   mitigationMeasures?: string;
+  executiveSummary?: string;
+  complianceGaps?: (string | ComplianceGap)[];
+  riskExplanation?: string;
+  aiReportRecommendations?: string[];
+  aiReportGeneratedAt?: string;
+  aiReportAssessmentUpdatedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
